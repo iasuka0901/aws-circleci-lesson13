@@ -92,3 +92,13 @@ jobs:
           root: .
           paths:
             - env_var.sh
+
+# ----------------------------------------------------------------
+# CircleCIにおけるワークフローの定義
+# ----------------------------------------------------------------
+workflows:
+  # ワークフローの名前
+  CircleCI-Practice-workflow:
+    # 実行するジョブ
+    jobs:
+      - execute-cloudformation
