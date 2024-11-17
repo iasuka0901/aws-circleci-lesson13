@@ -213,6 +213,16 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: !Ref AllowedSSHIP
+                  # ポート3000（アプリケーション用）へのトラフィックを全てのIPアドレスから許可するルール
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+        # ポート3306（MySQL用）へのトラフィックを特定のIPアドレスから許可するルール（例: AllowedSSHIP）
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: !Ref AllowedSSHIP
       # アウトバウンドルールの設定
       SecurityGroupEgress:
         # 全てのプロトコルのアウトバウンドトラフィックを全てのIPアドレスに許可。-1 はAWS CloudFormationで「全てのプロトコル」を意味。
