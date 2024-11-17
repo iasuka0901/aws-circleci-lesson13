@@ -1,0 +1,35 @@
+# YAML文書の開始
+---
+# インベントリで定義されたすべてのホストに対してタスクが実行
+- hosts: all
+  # プレイ内で使用される変数を定義するセクション
+  vars:
+    # AnsibleがEC2インスタンスに接続する際のユーザー名を指定
+    ansible_user: ec2-user
+    # アプリケーションのディレクトリパスを定義。
+    # {{ansible_user}} は上で定義した ec2-user に置き換えられ、最終的には /home/ec2-user/raisetech-live8-sample-app
+    app_dir: /home/{{ansible_user}}/raisetech-live8-sample-app
+    # 環境変数 AWS_DB_PW からデータベースのパスワードを取得し、aws_db_pwという変数に格納
+    aws_db_pw: "{{lookup('env','AWS_DB_PW')}}"
+    # 環境変数 AWS_DB_ENDPOINT からデータベースエンドポイントを取得し、aws_db_endpoint という変数に格納
+    aws_db_endpoint: "{{lookup('env','AWS_DB_ENDPOINT')}}"
+    #  環境変数 AWS_ALB_HOST からALBのホスト名を取得し、aws_alb_host という変数に格納
+    aws_alb_host: "{{lookup('env','AWS_ALB_HOST')}}"
+    # 環境変数 AWS_S3_BUCKET からS3バケット名を取得し、aws_s3_bucket という変数に格納
+    aws_s3_bucket: "{{lookup('env','AWS_S3_BUCKET')}}"
+  
+  # Ansibleで実行されるロールのリスト
+  # 特定の機能やタスクをまとめた再利用可能な構成要素
+  # 以下は実行されるロールのリスト
+  # タスクはYAMLファイルの記述順に上から順に実行
+  roles:
+    - git
+    - ruby
+    - bundler
+    - rails
+    - node
+    - yarn
+    - mysql
+    - setup
+    - nginx
+    - setup_server

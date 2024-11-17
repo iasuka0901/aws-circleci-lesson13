@@ -1,0 +1,27 @@
+#-------------------------------------------------------
+# systemdサービスファイルは、Puma HTTPサーバーの起動、監視、再起動を設定
+# Type=notifyでPumaの状態通知を使用し、WatchdogSecでサービスが応答しない場合のタイムアウトを設定
+# サービスはec2-userで実行され、アプリケーションディレクトリが指定
+# Pumaの実行コマンドはbundle exec puma -C config/puma.rbで設定され、リロード時にはPumaのプロセスにUSR2シグナルを送信して再起動
+#-------------------------------------------------------
+
+[Unit]
+Description=Puma HTTP Server
+After=network.target
+
+[Service]
+Type=notify
+
+WatchdogSec=60
+
+User=ec2-user
+
+WorkingDirectory=/home/ec2-user/raisetech-live8-sample-app
+
+Environment=PUMA_DEBUG=1
+
+#ExecStart=/<FULLPATH>/bin/puma -C <YOUR_APP_PATH>/puma.rb
+
+ExecStart=/bin/bash -lc 'bundle exec puma -C config/puma.rb'
+
+ExecReload=/bin/kill -USR2 $MAINPID

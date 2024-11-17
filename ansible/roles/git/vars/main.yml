@@ -1,0 +1,7 @@
+---
+# repo_url は変数名。
+# GitリポジトリのURLが格納。
+# このURLは、Ansibleの git モジュールを使ってコードをクローンする際に使用
+repo_url: https://github.com/yuta-ushijima/raisetech-live8-sample-app.git
+# app_dir も変数で、アプリケーションを配置するディレクトリのパス
+app_dir: /home/{{ansible_user}}/raisetech-live8-sample-app

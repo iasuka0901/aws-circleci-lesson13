@@ -370,8 +370,9 @@ Resources:
       ImageId: ami-03d25459ad01ac2b9
       # インスタンスタイプを指定。t2.microを使用
       InstanceType: t2.micro
-      # EC2インスタンスにSSH接続するためのキーペアの名前。事前に作成しておく必要がある。作成したキーペア名をCloudFormationテンプレート内のKeyNameプロパティに指定。
-      KeyName: lecture10_aws_ec2_sshkey
+      # EC2インスタンスにSSH接続するためのキーペアの名前。事前に作成しておく必要がある。
+      # 作成したキーペア名をCloudFormationテンプレート内のKeyNameプロパティに指定。
+      KeyName: AWS-Ansible-lecture13
       # セキュリティグループのIDを指定。事前に定義されたSecurityGroupEC2を参照
       SecurityGroupIds:
         - !Ref SecurityGroupEC2

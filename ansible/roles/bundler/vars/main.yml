@@ -1,0 +1,4 @@
+# tasksで定義した変数の値を記載
+---
+# vars file for bundler
+bundler_version: 2.3.14

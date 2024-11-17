@@ -1,0 +1,32 @@
+---
+# nginx のインストールや設定を行う
+- name: Check if nginx is installed
+  # command モジュールを使って/usr/sbin/nginx -v コマンドを実行
+  # このコマンドはNginxのバージョン情報を取得するために使用
+  # -v オプションは、Nginxのバージョンを確認するためのもの
+  # Amazon Linuxにもともと /usr/sbinディレクトリが存在する
+  ansible.builtin.command:
+    cmd: /usr/sbin/nginx -v
+  # コマンドの実行結果を nginx_check という変数に格納
+  register: nginx_check
+  # コマンドが失敗した場合でもエラーを無視し、次のタスクに進む
+  ignore_errors: true
+  # システムの状態を変更しないため、変更フラグを false に設定
+  # Ansibleの実行結果でこのタスクが変更を加えたものとして扱われない
+  changed_when: false
+
+# Nginxがインストールされていない場合にのみインストールを実行
+- name: Install nginx
+  # shell モジュールを使って、amazon-linux-extras install nginx1 -y コマンドを実行
+  # Amazon LinuxでNginxをインストールするためのもの
+  # -y オプションで、インストール中の確認プロンプトを自動で「yes」に設定
+  ansible.builtin.shell:
+    cmd: amazon-linux-extras install nginx1 -y
+  # nginx_check.failed が true、つまりNginxがインストールされていない場合にのみ、このタスクを実行
+  when: nginx_check.failed
+  # このインストールタスクの実行結果を nginx_install という変数に格納
+  register: nginx_install
+  # このタスクで状態の変更を表示しないように設定(changedとならないようにする)
+  changed_when: false
+  # sudo 権限で実行する設定
+  become: yes

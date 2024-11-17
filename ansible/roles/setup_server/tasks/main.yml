@@ -1,0 +1,187 @@
+---
+# puma.rbの設定ファイルを編集
+- name: edit puma.rb
+  ansible.builtin.template:
+    # srcはコピー元のファイルを指定するパラメータ
+    src: templates/puma.rb.j2
+    # destはコピー先のパスを指定
+    dest: "{{app_dir}}/config/puma.rb"
+  changed_when: false
+
+# /home/ec2-userのパーミッションを変更
+- name: change permission /home/ec2-user
+  # Ansibleのfileモジュールを使用して、ディレクトリやファイルのパーミッションや所有権を変更
+  ansible.builtin.file:
+    # pathパラメータで対象となるディレクトリを指定
+    path: /home/{{ansible_user}}
+    # pathパラメータで対象となるディレクトリを指定
+    # オーナーに全ての権限を付与し、その他のユーザーに実行権限のみを付与
+    mode: 0701
+
+# Ansibleを使ってNginxの設定ファイルを配置する
+- name: edit nginx.conf
+  # templateモジュールを使用
+  # 指定したテンプレートファイルをターゲットサーバー上の所定の場所にコピーし、その中の変数を置き換える機能
+  ansible.builtin.template:
+    # templates/nginx.conf.j2がテンプレートファイルとして使用
+    src: templates/nginx.conf.j2
+    # Nginxの設定ファイル/etc/nginx/nginx.confに書き出され
+    dest: "/etc/nginx/nginx.conf"
+  changed_when: false
+  become: yes
+
+# Nginxの設定ファイル raisetech-live8-sample-app.conf を作成または更新する
+- name: edit raisetech-live8-sample-app.conf
+  ansible.builtin.template:
+    src: templates/raisetech-live8-sample-app.conf.j2
+    dest: "/etc/nginx/conf.d/raisetech-live8-sample-app.conf"
+  changed_when: false
+  become: yes
+
+# Pumaのsystemdサービス設定ファイル puma.service の編集
+- name: edit puma.service
+  ansible.builtin.template:
+    src: templates/puma.service.j2
+    dest: "/etc/systemd/system/puma.service"
+  changed_when: false
+  become: yes
+
+# Pumaサービスのリロード
+# systemdデーモンをリロード(systemdが保持しているサービスの設定情報を再読み込み)
+- name: relode puma.service
+  ansible.builtin.shell:
+    cmd: "systemctl daemon-reload"
+  changed_when: false
+  become: yes
+
+# Pumaソケットディレクトリの作成
+# UNIXソケットを使ってプロセス間通信を行う
+# パーミッションは0755（所有者が読み取り・書き込み・実行可能、他のユーザーは読み取り・実行のみ可能）
+- name: creat socket tmp/sockets
+  ansible.builtin.file:
+    path: "{{app_dir}}/tmp/sockets"
+    state: directory
+    owner: "{{ansible_user}}"
+    mode: 0755
+
+# PIDディレクトリの作成
+# state: 指定されたpathが存在しない場合、ディレクトリを作成
+- name: creat socket tmp/pids
+  ansible.builtin.file:
+    path: "{{app_dir}}/tmp/pids"
+    state: directory
+    owner: "{{ansible_user}}"
+    mode: 0755
+
+# development.rbの編集
+# Railsアプリケーションの開発環境設定ファイルを編集・更新
+- name: edit development.rb
+  ansible.builtin.template:
+    src: templates/development.rb.j2
+    dest: "{{app_dir}}/config/environments/development.rb"
+  changed_when: false
+
+# storage.ymlの編集
+# Railsアプリケーションで使用するストレージ設定を定義
+- name: edit storage.yml
+  ansible.builtin.template:
+    src: templates/storage.yml.j2
+    dest: "{{app_dir}}/config/storage.yml"
+  changed_when: false
+
+# application.rbの編集
+# Railsアプリケーション全体の設定を編集
+- name: edit application.rb
+  ansible.builtin.template:
+    src: templates/application.rb.j2
+    dest: "{{app_dir}}/config/application.rb"
+  changed_when: false
+
+# アセットのプリコンパイル
+# Railsの静的アセット（CSS、JavaScript、画像など）をプリコンパイルし、本番環境で使用可能
+- name: assets precompile
+  ansible.builtin.shell:
+    cmd: /bin/bash -lc "bin/rails assets:precompile"
+  args:
+    chdir: "{{app_dir}}"
+  changed_when: false
+
+# ImageMagickインストールの確認
+# ImageMagick（画像処理ライブラリ）のインストール確認
+- name: check install imagemagick
+  ansible.builtin.shell:
+    cmd: magick --version
+  register: check_imagemagick
+  ignore_errors: true
+  changed_when: false
+
+# EPELリポジトリのインストール
+# EPELリポジトリを有効化することで、追加のパッケージ（ImageMagickなど）をインストール可能
+- name: install epel
+  ansible.builtin.yum:
+    name: https://dl.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/e/epel-release-7-14.noarch.rpm
+    state: present
+  when: check_imagemagick.failed
+  become: yes
+
+# yum-utilsのインストール
+# yum-utils は、yumコマンドを補助するツール（例: リポジトリ管理）を提供
+- name: install yum-utils
+  ansible.builtin.yum:
+   name: yum-utils
+   state: present
+  when: check_imagemagick.failed
+  become: yes
+
+# Remiリポジトリのインストール
+# 最新版や特定バージョンのパッケージを取得可能にするため、Remiリポジトリを追加
+- name: install remi 
+  ansible.builtin.yum:
+    name: http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    state: present
+  when: check_imagemagick.failed
+  become: yes
+
+# Remiリポジトリの有効化
+# 必要なパッケージ（例えば、最新のImageMagickやPHP）をインストールするためには、リポジトリを有効化する必要
+- name: enable remi
+  ansible.builtin.shell:
+    cmd: yum-config-manager --enable remi
+  when: check_imagemagick.failed
+  become: yes
+
+# ----------------------------------------------
+# EPELリポジトリの追加
+# yum-utilsのインストール
+# Remiリポジトリの追加
+# Remiリポジトリの有効化
+# 最終的に、ImageMagickのインストール準備が整う
+# ----------------------------------------------
+
+# ImageMagickのインストール
+- name: install ImageMagick
+  ansible.builtin.yum:
+    name: "{{imagemagick_pkgs}}"
+    state: present
+  vars:
+    imagemagick_pkgs:
+      - ImageMagick7
+      - ImageMagick7-devel
+    enablerepo: remi
+  register: check_install_imagemagick
+  when: check_imagemagick.failed
+  become: yes
+
+# Nginxサービスを再起動
+- name: start nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+  become: yes
+
+# Pumaサービスを再起動
+- name: start puma
+  ansible.builtin.service:
+    name: puma
+    state: restarted
+  become: yes

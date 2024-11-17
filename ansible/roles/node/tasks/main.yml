@@ -1,0 +1,53 @@
+---
+# Node.jsのインストールを行うためのもの
+# タスク名。「Node.jsがインストールされているか確認する」タスク
+- name: Check if node is installed
+  # Ansibleのcommandモジュールを使用してシェルコマンドを実行
+  ansible.builtin.command:
+    # node -vコマンドを実行。
+    # Node.jsがインストールされている場合はそのバージョンが表示される
+    cmd: node -v
+  # タスクの実行結果をnode_checkという変数に保存
+  register: node_check
+  # コマンドが失敗してもエラーとして扱わないように設定
+  ignore_errors: true
+  # システムの状態を「変更した」として扱わない設定
+  changed_when: false
+
+# nvm（Node Version Manager）をインストールする
+- name: Install nvm
+  # Ansibleのshellモジュールを使用してシェルコマンドを実行
+  ansible.builtin.shell: 
+    # curlコマンドを使ってnvmのインストールスクリプトをダウンロードし、bashでそのスクリプトを実行
+    # nvmがインストールされる
+    # -o-オプションは標準出力に出力する設定で、パイプを使ってそのままbashで実行
+    cmd: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+  # 「Node.jsがインストールされていない」場合のみこのタスクが実行
+  when: node_check.failed
+  # 「システムの変更を加えた」と記録されないように設定  
+  changed_when: false
+
+# .bashrcファイルを読み込む（sourceコマンドで再実行する）タスク
+# nvmのインストールにより設定された環境変数などが現在のシェルで使えるようにする
+- name: load .bashrc
+  # shellモジュールを使用してシェルコマンドを実行
+  ansible.builtin.shell:
+    # source ~/.bashrcコマンドを実行
+    # .bashrcファイル内に設定された環境変数やエイリアスなどが現在のシェルセッションに適用される
+    cmd: source ~/.bashrc
+  # Node.jsがインストールされていない場合（node_check.failedがtrue）のみ、このタスクが実行
+  when: node_check.failed
+
+# Node.jsを指定されたバージョンでインストールする
+- name: Install Node.js
+  # Ansibleが提供するshellモジュールを使用して、シェルコマンドを実行
+  ansible.builtin.shell:
+    # bashシェルを指定
+    # -l: ログインシェルとして実行するという指示
+    # -c: 次に続く文字列をコマンドとして実行するという指示
+    # "nvm install {{node_version}}": 定義された変数node_versionの値に基づいてNode.jsをインストールするコマンド
+    cmd: /bin/bash -lc "nvm install {{node_version}}"
+  # コマンドの実行結果をnode_installという変数に格納
+  register: node_install
+  # node_check.failedがtrue（node_checkタスクが失敗した場合）である場合にのみ、このタスクが実行
+  when: node_check.failed

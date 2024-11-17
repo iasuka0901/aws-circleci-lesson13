@@ -1,0 +1,26 @@
+---
+# Railsがインストールされているかどうか
+- name: Check if rails is installed
+  # commandモジュールを使用して、シェルコマンドを実行
+  ansible.builtin.command:
+    # rails -vは、Railsがインストールされている場合にそのバージョンを表示するコマンド
+    cmd: rails -v
+  # rails_checkという名前でタスクの結果を変数に格納
+  register: rails_check
+  # コマンドが失敗してもエラーを無視して次のタスクに進む
+  ignore_errors: true
+  # コマンドが実行されても状態が変化したとはみなさないように設定
+  changed_when: false
+
+# Railsをインストールする
+- name: Install rails
+  # shellモジュールを使って、シェルコマンドを実行
+  ansible.builtin.shell:
+    # /bin/bash -lc は、bashをログインシェルとして実行するための指定
+    # 指定したバージョンのRails（rails_version変数の値）をインストールするコマンド
+    cmd: /bin/bash -lc "gem install rails -v {{rails_version}}"
+  # rails_installという名前でタスクの結果を変数に格納
+  # Railsインストールの結果（成功か失敗か、出力など）が保存
+  register: rails_install
+  # 「rails_checkタスクが失敗した場合にのみ、このインストールタスクを実行する」という意味
+  when: rails_check.failed

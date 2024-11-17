@@ -1,0 +1,42 @@
+# ------------------------------------------------
+# application.rbは、Rails 7.1ベースのアプリケーションを設定するファイル
+# モジュールの選択的読み込み: 必要なRailsモジュールのみをロード。
+# ActiveStorageの設定: MiniMagickを画像加工エンジンに指定。
+# libの読み込み制御: 一部のサブディレクトリを自動読み込み対象から除外。
+# システムテスト無効化: 不要なファイル生成を抑える。
+# ------------------------------------------------
+
+# boot.rbを読み込む。boot.rbはRailsアプリケーションの環境（Gemのロードなど）を設定するファイル
+require_relative "boot"
+
+# Railsフレームワーク全体をロード
+# アプリケーションで使用するRailsのモジュールを指定してロード
+require "rails"
+require "active_model/railtie"
+require "active_job/railtie"
+require "active_record/railtie"
+require "active_storage/engine"
+require "action_controller/railtie"
+require "action_mailer/railtie"
+require "action_mailbox/engine"
+require "action_text/engine"
+require "action_view/railtie"
+require "action_cable/engine"
+
+# Gemの読み込み
+# Gemfileに定義されたすべてのGemを現在のRails環境（test, development, productionなど）に応じて読み込む
+Bundler.require(*Rails.groups)
+
+# モジュールとアプリケーションクラスの定義
+module RaisetechLive8SampleApp
+  class Application < Rails::Application
+    # Railsの初期設定
+    config.load_defaults 7.1
+    # ActiveStorage設定
+    config.active_storage.variant_processor = :mini_magick
+    # libディレクトリの自動ロード設定
+    config.autoload_lib(ignore: %w(assets tasks))
+    # システムテストの生成を無効化
+    config.generators.system_tests = nil
+  end
+end

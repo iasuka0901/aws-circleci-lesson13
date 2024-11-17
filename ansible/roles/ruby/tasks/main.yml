@@ -1,0 +1,123 @@
+---
+# Rubyがインストールされているか確認
+- name: Check if ruby is installed
+  ansible.builtin.command:
+    cmd: ruby --version
+  # 結果をruby_checkに保存
+  register: ruby_check
+  ignore_errors: true
+  changed_when: false
+
+# RVMとRubyをインストールするために必要な依存パッケージをインストール
+- name: Install dependencies packages for rvm and ruby
+  # Linuxディストリビューションでパッケージ管理を行うためのAnsibleモジュール
+  ansible.builtin.yum:
+    # インストールするパッケージ名を指定
+    # dependencies_pkgという変数に複数の依存パッケージ名がリスト形式で格納されており、その全てをインストール
+    name: "{{dependencies_pkg}}"
+    # パッケージを「インストール済み（present）」にするという意味
+    # 指定されたパッケージが既にインストールされていれば何もせず、未インストールの場合のみインストール
+    state: present
+  vars:
+    # インストールすべきパッケージのリスト
+    dependencies_pkg:
+      - patch
+      - autoconf
+      - automake
+      - bison
+      - gcc-c++
+      - libffi-devel
+      - libtool
+      - patch
+      - readline-devel
+      - sqlite-devel
+      - zlib-devel
+      - glibc-headers
+      - glibc-devel
+      - libyaml-devel
+      - openssl-devel
+  when: ruby_check.failed
+  become: yes
+
+# RVMのGPGキーをインポート
+# RVMのインストールスクリプトの署名が確認され、信頼性が確保される
+- name: Import GPG keys for rvm
+  ansible.builtin.command: 
+    # gpg2を使ってUbuntuのキーサーバーから公開鍵をインポート
+    # --recv-keysの後に続く二つのキーIDは、RVMの開発者が公開している署名用のGPGキー
+    cmd: gpg2 --keyserver keyserver.ubuntu.com --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+  # ruby_check.failedがtrueの場合に実行
+  when: ruby_check.failed
+  changed_when: false
+
+# RVMをインストール
+- name: Install rvm
+  # Ansibleのshellモジュールは、指定されたコマンドをシェル経由で実行
+  # curlでRVMのインストールスクリプトをダウンロードし、bashでそのスクリプトを実行してRVMをインストール
+  # curlはデータを取得するためのコマンドラインツール
+  # -s（silent）：進捗状況やエラーメッセージを表示せずに実行
+  # -S（show-error）：エラーが発生した場合にはエラーメッセージを表示
+  # -L（location）：リダイレクトがある場合に自動的に新しいURLにリダイレクト
+  # リダイレクトが追跡され、進捗状況は非表示になり、エラーのみが出力
+  # パイプ（|）は、curlコマンドの出力（RVMインストールスクリプト）を直接bashに渡して実行
+  # bash -s stableは、RVMのインストールスクリプトをbashシェルで実行し、stableという引数を渡す
+  ansible.builtin.shell: 
+    cmd: curl -sSL https://get.rvm.io | bash -s stable
+  when: ruby_check.failed
+  changed_when: false
+
+# RVMのスクリプトを読み込む
+- name: Source rvm script
+  # Ansibleのlineinfileモジュールを使用
+  # lineinfileは指定したファイルの特定の行を追加・編集・削除するために使用
+  ansible.builtin.lineinfile:
+    # 編集対象のファイルパスを指定
+    # /home/{{ansible_user}}/.bashrcは、対象ユーザーの.bashrcファイルの場所
+    path: /home/{{ansible_user}}/.
+    # .bashrcに追加したい行
+    # [[ -s $HOME/.rvm/scripts/rvm ]]: $HOME/.rvm/scripts/rvm というファイルが存在し
+    # かつサイズが非ゼロであれば、次のコマンドを実行
+    # source $HOME/.rvm/scripts/rvm: 上記の条件が満たされた場合、このファイルを読み込む
+    # これにより、RVMの環境設定が現在のシェルに適用
+    line: 'if [[ -s $HOME/.rvm/scripts/rvm ]] ; then source $HOME/.rvm/scripts/rvm ; fi'
+    state: present
+  when: ruby_check.failed
+  changed_when: false
+
+# 「.bashrcを読み込む」という意味
+# RVMのインストール後に.bashrcの設定を適用し、RVMのコマンドが利用可能な状態にするため
+- name: load .bashrc
+  # Ansibleのshellモジュールを使用して、指定されたコマンドを実行
+  ansible.builtin.shell:
+    cmd: /bin/bash -lc "source /home/{{ansible_user}}/.bashrc"
+  when: ruby_check.failed
+  changed_when: false
+
+# 「Rubyをインストールする」
+- name: Install ruby
+  ansible.builtin.shell:
+    # /bin/bash -lc で、ログインシェルを開き、次に続くコマンドを実行
+    # 指定されたRubyのバージョン（{{ruby_version}}）をRVMを使ってインストール
+    cmd: /bin/bash -lc "rvm install ruby-{{ruby_version}}"
+  when: ruby_check.failed
+  # 実行するコマンドに環境変数を設定
+  environment:
+    # PATH環境変数に/home/{{ansible_user}}/.rvm/binを追加
+    # RVMでインストールしたRubyやその管理ツールが適切にパスに追加され、コマンドを正しく実行
+    PATH: "{{ansible_env.PATH}}:/home/{{ansible_user}}/.rvm/bin"
+  register: ruby_install
+  changed_when: false
+
+# 「Rubyのデフォルトバージョンを設定する」
+# RVMを使ってRubyのバージョンを切り替えるために必要
+- name: Set default ruby version
+  ansible.builtin.shell:
+    # "rvm use {{ruby_version}}" は、RVMを使って指定されたRubyのバージョンをデフォルトに設定
+    # 指定したRubyのバージョンがデフォルトとして選択され、今後システム上でrubyコマンドを実行する際にはそのバージョンが使用する
+    cmd: /bin/bash -lc "rvm use {{ruby_version}}"
+  # シェルコマンドに渡す環境変数を設定
+  environment:
+    # PATH環境変数に/home/{{ansible_user}}/.rvm/binを追加
+    # RVMでインストールされたRubyがコマンドラインで利用できるようになる
+    PATH: "{{ansible_env.PATH}}:/home/{{ansible_user}}/.rvm/bin"
+  when: ruby_install.changed

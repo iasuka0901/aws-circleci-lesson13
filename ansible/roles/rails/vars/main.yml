@@ -1,0 +1,3 @@
+---
+# Ansibleで使う変数rails_versionを定義
+rails_version: 7.1.3.2

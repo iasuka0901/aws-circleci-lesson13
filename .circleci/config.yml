@@ -60,7 +60,7 @@ jobs:
           # set -x :シェルで実行されるすべてのコマンドを表示するデバッグモードを有効にする。後でコマンドがどのように実行されたかをデバッグしやすくなる
           # echo exportについてはCloudformationテンプレートのOutputセクションから値を取得する。
           # 上記値を環境変数として設定するためのコマンド
-          #EC2のパブリックIPアドレスを取得し、AWS_EC2_IP環境変数に設定
+          # EC2のパブリックIPアドレスを取得し、AWS_EC2_IP環境変数に設定
           # RDSのエンドポイントを取得し、AWS_DB_ENDPOINT環境変数に設定
           # ALBのホスト名を取得し、AWS_ALB_HOST環境変数に設定
           # S3バケット名を取得し、AWS_S3_BUCKET環境変数に設定
@@ -92,6 +92,55 @@ jobs:
           root: .
           paths:
             - env_var.sh
+# ----------------------------------------------------------------
+# Ansible
+# ----------------------------------------------------------------
+  # ジョブの名前。Ansibleを使った作業
+  execute-ansible:
+    # Ansibleプレイブックを実行するための実行環境を指定。ansible-playbook/defaultという名前のexecutorを使用
+    executor: ansible-playbook/default
+    # このジョブが実行するステップのリストを開始
+    steps:
+      # Gitリポジトリの内容が作業ディレクトリにコピー
+      - checkout
+      # 以前のジョブで保存したワークスペースをこのジョブにアタッチ
+      - attach_workspace:
+          # ワークスペースが現在のディレクトリ（.）にマウントされる
+          at: .
+      - run:
+          name: check env_var.sh
+          # source env_var.shで前段（Cloudformationジョブ）で取得した環境変数をそのジョブ内で使用できる
+          # env_var.shファイルの内容を表示するコマンド
+          command: |
+            source env_var.sh
+            cat env_var.sh
+      - run:
+          name: read env_var.sh
+          # env_var.shの内容を$BASH_ENVというファイルに追記。次のステップでこのファイルを読み込むことができる
+          # $BASH_ENVの内容を表示。環境変数が正しく設定されているかを確認
+          command: |
+            set -x
+            cat env_var.sh >> $BASH_ENV
+            cat $BASH_ENV
+      # SSHキーをCircleCIの環境に追加するステップ
+      - add_ssh_keys:
+          # CircleCIが正しいSSHキーを使って接続を認証
+          # CircleCIのSSHキーペア登録後のSHAを登録
+          fingerprints:
+            - SHA256:Rz/8yU8LAy/Xoy3vVpOCM7by/5joKknjST2/WY3N160
+      # ★ここから★
+      # Ansibleのバージョン 2.9.23 をインストールするステップ
+      - ansible-playbook/install:
+          version: 2.9.23
+      # playbook コマンドを実行するステップ。ansible/playbook.ymlをターゲットノードで実行
+      - ansible-playbook/playbook:
+          # ターゲットノードに対して実行する一連のタスク（パッケージのインストールや設定変更など）が記述
+          playbook: ansible/playbook.yml
+          # Ansibleのプレイブックを実行する際のオプションに関する記述
+          # -u ec2-user は、EC2インスタンスのデフォルトのユーザー名
+          # -i ansible/inventory は、ターゲットのホストを指定するインベントリファイルへのパス
+          # --private-key ~/.ssh/id_rsa は、CircleCIに登録済みのSSHキーへのパス
+          playbook-options: -u ec2-user -i ansible/inventory --private-key ~/.ssh/id_rsa
 
 # ----------------------------------------------------------------
 # CircleCIにおけるワークフローの定義
@@ -102,3 +151,7 @@ workflows:
     # 実行するジョブ
     jobs:
       - execute-cloudformation
+      - execute-ansible:
+          # ジョブが実行される前に完了しなければならない他のジョブを指定
+          requires:
+            - execute-cloudformation

@@ -1,0 +1,6 @@
+# Ansibleがmyserverというエイリアスで定義されたホストに接続するための情報
+all:
+  hosts:
+    myserver:
+      ansible_host: "{{ lookup('env', 'AWS_EC2_IP') }}"
+      ansible_user: ec2-user

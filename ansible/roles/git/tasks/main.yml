@@ -1,0 +1,42 @@
+---
+# tasks file for git
+#Gitのインストールを目的
+- name: Install git
+  # Ansibleのyumモジュール
+  # yumパッケージ管理システムを使って、パッケージのインストール、更新、削除などを行うGitのインストールを目的
+  ansible.builtin.yum:
+    # yumモジュールに「gitパッケージを対象に操作を実行する」よう指示
+    name: git
+    # パラメータで「present」を指定することで、Gitがインストールされていない場合にインストールされる
+    state: present
+  # becomeパラメータで「yes」を指定することで、このタスクを特権ユーザー（通常はroot）として実行
+  become: yes
+
+# ディレクトリが存在するかどうかを確認
+- name: Check if the directory exists
+  # statモジュールは、指定したファイルやディレクトリの情報を取得する際に使用
+  ansible.builtin.stat:
+    # 確認対象のパスを指定
+    path: "{{app_dir}}"
+  # registerパラメータを使い、このタスクの実行結果をdir_checkという変数に格納
+  # 後続のタスクでdir_check変数を使用して、ディレクトリが存在するかどうかを条件として利用できる
+  register: dir_check
+
+# Gitリポジトリをクローンする目的で実行
+- name: git clone sample-app
+  # 指定したリポジトリをクローンして内容をダウンロード
+  ansible.builtin.git:
+    # repoパラメータで、クローンするGitリポジトリのURLを指定
+    repo: "{{repo_url}}"
+    # destパラメータで、クローンしたリポジトリの内容を保存する先のディレクトリを指定
+    # app_dir変数のパスにクローン
+    dest: "{{app_dir}}"
+    # forceパラメータで「yes」を指定することで、もしdestディレクトリに内容が既に存在している場合でも上書きしてクローン
+    force: yes
+  # registerパラメータを使い、このタスクの実行結果をcheck_cloneという変数に格納
+  register: check_clone
+  #  ignore_errorsパラメータで「true」を指定することで、このタスクでエラーが発生しても、次のタスクに進む
+  ignore_errors: true
+  # dir_check.stat.existsが「false」、つまりapp_dirが存在しない場合のみ、このタスクが実行
+  # app_dirディレクトリがまだ存在しない場合、git clone操作により自動的に作成★
+  when: not dir_check.stat.exists
