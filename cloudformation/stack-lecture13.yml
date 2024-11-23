@@ -25,6 +25,21 @@ Parameters:
 
 # CloudFormationテンプレート内のリソースを定義するセクションの始まり
 Resources:
+# ----------------------------------------------------------------
+#   動的なターゲットを取得するため
+# ----------------------------------------------------------------
+  plugin: amazon.aws.aws_ec2
+  regions:
+    - ap-northeast-1  # 必要なリージョン
+  filters:
+    instance-state-name: running  # 起動中インスタンスのみ対象
+    tag:Name: AWS-Ansible-lecture13-ec2-1a  # CloudFormationテンプレートのNameタグと一致
+  keyed_groups:
+    - key: tags.Name  # タグのName値でグループ化
+  hostnames:
+    - public-ip-address  # インスタンスのパブリックIPアドレスをホスト名として使用
+  compose:
+    ansible_host: public-ip-address  # Ansibleでの接続に使用
 
 # ----------------------------------------------------------------
 #   VPCの定義
@@ -572,23 +587,6 @@ Resources:
         # リスナーがリクエストを転送するアクションのタイプを指定。リクエストをターゲットグループに転送
         - Type: forward
           TargetGroupArn: !Ref TargetGroup
-
-# ----------------------------------------------------------------
-#  動的ターゲット取得のため
-# ----------------------------------------------------------------
-Resources:
-  plugin: amazon.aws.aws_ec2
-  regions:
-    - ap-northeast-1  # 必要なリージョン
-  filters:
-    instance-state-name: running  # 起動中インスタンスのみ対象
-    tag:Name: AWS-Ansible-lecture13-ec2-1a  # CloudFormationテンプレートのNameタグと一致
-  keyed_groups:
-    - key: tags.Name  # タグのName値でグループ化
-  hostnames:
-    - public-ip-address  # インスタンスのパブリックIPアドレスをホスト名として使用
-  compose:
-    ansible_host: public-ip-address  # Ansibleでの接続に使用
 
 # ----------------------------------------------------------------
 #  Outputセクション(CircleCIへ値を連携)
