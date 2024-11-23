@@ -8,7 +8,12 @@ Parameters:
   NameBase:
   # NameBase パラメータの説明
     Description: this is base name
+    #ElasticIP
+    ElasticIP:
     #文字列型の値を受け取ること
+    Type: String
+    Description: 事前に作成したElastic IPのIPアドレス
+    Default: "18.180.210.194"
     Type: String
     # NameBase パラメータのデフォルト値
     Default: lecture13
@@ -25,22 +30,6 @@ Parameters:
 
 # CloudFormationテンプレート内のリソースを定義するセクションの始まり
 Resources:
-# ----------------------------------------------------------------
-#   動的なターゲットを取得するため
-# ----------------------------------------------------------------
-  plugin: amazon.aws.aws_ec2
-  regions:
-    - ap-northeast-1  # 必要なリージョン
-  filters:
-    instance-state-name: running  # 起動中インスタンスのみ対象
-    tag:Name: AWS-Ansible-lecture13-ec2-1a  # CloudFormationテンプレートのNameタグと一致
-  keyed_groups:
-    - key: tags.Name  # タグのName値でグループ化
-  hostnames:
-    - public-ip-address  # インスタンスのパブリックIPアドレスをホスト名として使用
-  compose:
-    ansible_host: public-ip-address  # Ansibleでの接続に使用
-
 # ----------------------------------------------------------------
 #   VPCの定義
 # ----------------------------------------------------------------
@@ -412,6 +401,13 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${NameBase}-ec2-1a"
+
+  # Elastic IPをEC2インスタンスに関連付ける
+  EIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref EC2
+      EIP: !Ref ElasticIP 
 
 # ----------------------------------------------------------------
 #   RDSのシークレットマネージャーの定義
