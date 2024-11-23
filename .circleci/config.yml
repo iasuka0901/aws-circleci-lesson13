@@ -74,7 +74,7 @@ jobs:
             #ALB_host
             echo export AWS_ALB_HOST="$(aws cloudformation describe-stacks --stack-name lecture13-stack --query "Stacks[0].Outputs[?OutputKey=='ALBDNSName'].OutputValue" --output text)" >> $BASH_ENV
             #S3bucket
-            echo export AWS_S3_BUCKET="$(aws cloudformation describe-stacks --stack-name lecture13-stack --query "Stacks[0].Outputs[?OutputKey=='S3BuckeName'].OutputValue" --output text)" >> $BASH_ENV
+            echo export AWS_S3_BUCKET="$(aws cloudformation describe-stacks --stack-name lecture13-stack --query "Stacks[0].Outputs[?OutputKey=='S3BucketName'].OutputValue" --output text)" >> $BASH_ENV
       - run:
           # $BASH_ENVファイルの内容を表示。環境変数が正しく設定されたかどうかを確認
           name: cat $BASH_ENV
