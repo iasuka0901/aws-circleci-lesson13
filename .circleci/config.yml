@@ -128,7 +128,6 @@ jobs:
           # CircleCIのSSHキーペア登録後のSHAを登録
           fingerprints:
             - SHA256:Rz/8yU8LAy/Xoy3vVpOCM7by/5joKknjST2/WY3N160
-      # ★ここから★
       # Ansibleのバージョン 2.9.23 をインストールするステップ
       - ansible-playbook/install:
           version: 2.9.23

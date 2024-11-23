@@ -602,3 +602,53 @@ Outputs:
     Description: Name of S3 Bucket
     # !Ref: リソースの基本的な参照（IDや名前）を取得
     Value: !Sub "${NameBase}-20240728-s3"
+
+# セキュリティグループに関する情報を公開
+  EC2SecurityGroupId:
+    Description: EC2SecurityGroup ID
+    Value: !Ref SecurityGroupEC2
+    Export: 
+      Name: TARGETECSG-CI
+  
+  RDSSecurityGroupId:
+    Description: RDSSecurityGroup ID
+    Value: !Ref SecurityGroupRDS
+    Export: 
+      Name: RDSSGId-CI
+  
+  ALBSecurityGroupId:
+    Description: ALBSecurityGroup ID
+    Value: !Ref SecurityGroupALB
+    Export: 
+      Name: ALBSGId-CI
+
+# ネットワークに関する情報を公開
+  VPC:
+    Description: VPC ID
+    Value: !Ref VPC
+    Export: 
+      Name: VpcId-CI
+
+  PublicSubnet1aId:
+    Description: PublicSubnet1a ID
+    Value: !Ref PublicSubnet1a
+    Export: 
+      Name: PublicSubnet1aId-CI
+
+  PublicSubnet1cId:
+    Description: PublicSubnet1c ID
+    Value: !Ref PublicSubnet1c
+    Export: 
+      Name: PublicSubnet1cId-CI
+
+  PrivateSubnet1aId:
+    Description: PrivateSubnet1a ID
+    Value: !Ref PrivateSubnet1a
+    Export: 
+      Name: PrivateSubnet1aId-CI
+
+  PrivateSubnet1cId:
+    Description: PrivateSubnet1c ID
+    Value: !Ref PrivateSubnet1c
+    Export: 
+      Name: PrivateSubnet1cId-CI
