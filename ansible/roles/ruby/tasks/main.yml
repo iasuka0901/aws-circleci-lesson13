@@ -73,7 +73,7 @@
   ansible.builtin.lineinfile:
     # 編集対象のファイルパスを指定
     # /home/{{ansible_user}}/.bashrcは、対象ユーザーの.bashrcファイルの場所
-    path: /home/{{ansible_user}}/.
+    path: /home/{{ ansible_user }}/.bashrc
     # .bashrcに追加したい行
     # [[ -s $HOME/.rvm/scripts/rvm ]]: $HOME/.rvm/scripts/rvm というファイルが存在し
     # かつサイズが非ゼロであれば、次のコマンドを実行
