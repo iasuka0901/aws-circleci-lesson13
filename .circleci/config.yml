@@ -139,7 +139,7 @@ jobs:
           # -u ec2-user は、EC2インスタンスのデフォルトのユーザー名
           # -i ansible/inventory は、ターゲットのホストを指定するインベントリファイルへのパス
           # --private-key ~/.ssh/id_rsa は、CircleCIに登録済みのSSHキーへのパス
-          playbook-options: -u ec2-user -i ansible/inventory --private-key ~/.ssh/id_rsa
+          playbook-options: -u ec2-user -i ansible/inventory --private-key ~/.ssh/AWS-Ansible-lecture13.pem
 
 # ----------------------------------------------------------------
 # CircleCIにおけるワークフローの定義
