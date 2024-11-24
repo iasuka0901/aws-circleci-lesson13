@@ -67,8 +67,8 @@ jobs:
           # $BASH_ENVという特別な環境変数を使用することで、スクリプト内で設定した環境変数を後続のジョブやステップで利用可能にすることができる
           command: | 
             set -x
-            #EC2publicIP
-            echo export AWS_EC2_IP="$(aws cloudformation describe-stacks --stack-name lecture13-stack --query "Stacks[0].Outputs[?OutputKey=='EC2PublicIpAddress'].OutputValue" --output text)" >> $BASH_ENV
+            #EC2ElasticIp
+            echo export AWS_EC2_IP="$(aws cloudformation describe-stacks --stack-name lecture13-stack --query "Stacks[0].Outputs[?OutputKey=='EC2ElasticIp'].OutputValue" --output text)" >> $BASH_ENV
             #DB_Endpoint
             echo export AWS_DB_ENDPOINT="$(aws cloudformation describe-stacks --stack-name lecture13-stack --query "Stacks[0].Outputs[?OutputKey=='RDSEndpoint'].OutputValue" --output text)" >> $BASH_ENV
             #ALB_host

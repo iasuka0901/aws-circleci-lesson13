@@ -585,10 +585,10 @@ Resources:
 # ----------------------------------------------------------------
 # スタックのリソースに関する情報を公開
 Outputs:
-  EC2PublicIpAddress:
-    Description: Public IP of EC2 instance
-    # Resourcesセクションで定義したもの。
-    Value: !GetAtt EC2.PublicIp
+  EC2ElasticIp:
+    Description: EC2インスタンスに関連付けられたElastic IP
+    # Elastic IPの値を取得
+    Value: !Ref ElasticIP
   
   RDSUser:
     Description: User of RDS
