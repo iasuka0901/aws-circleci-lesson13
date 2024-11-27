@@ -29,7 +29,7 @@
     - rails
     - node
     - yarn
-    - mysql-tasks
+    - mysql
     - setup
-    - nginx-tasks
+    - nginx
     - setup_server
