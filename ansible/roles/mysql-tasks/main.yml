@@ -1,34 +1,44 @@
 ---
 # MySQLがインストールされているか確認する内容
 - name: Check if mysql is installed
+  # Ansible の command モジュールを使用して、指定のシェルコマンドを実行
   ansible.builtin.command:
-    cmd: which mysql && mysql --version
+    # mysql --version を実行し、MySQLのバージョンを確認
+    cmd: mysql --version
+  # コマンドの実行結果を mysql_check という変数に格納
   register: mysql_check
+  # コマンドの実行が失敗してもエラーを無視し、次のタスクに進む
   ignore_errors: true
+  # システムの状態が変わらない（インストール操作ではない）ためfalse に設定
   changed_when: false
 
 # MySQL のインストールを行うタスク
 - name: Install mysql
+  # yum モジュールを使ってmysql パッケージをインストール
   ansible.builtin.yum:
+    # インストールするパッケージ名を指定
     name: mysql
+    # MySQLがインストールされていない場合はインストールするよう指示
     state: present
+  # mysql_install という変数にインストールの結果を格納
+  register: mysql_install
+  # yes とすることで、root 権限で実行
   become: yes
-  when: mysql_check is defined and mysql_check.failed
+  # mysql_check.failed（MySQL がインストールされておらず、mysql --version が失敗した場合）にのみ、このインストールタスクが実行
+  when: mysql_check.failed
 
-# MySQL 開発用パッケージ mysql-devel をインストールするタスク
+#  MySQL 開発用パッケージ mysql-devel をインストールするタスク
 - name: Install mysql-devel
+  # yum モジュールを使ってmysql-devel パッケージをインストール
   ansible.builtin.yum:
+    # mysql-devel パッケージをインストール
     name: mysql-devel
+    # present として、未インストールの場合にインストールされるようにする
     state: present
+  # yesでroot 権限でインストール
   become: yes
-  when: mysql_check is defined and mysql_check.failed
+  # mysql_check.failed（MySQL がインストールされておらず、mysql --version が失敗した場合）にのみこのタスクが実行
+  when: mysql_check.failed
 
-# MySQL公式リポジトリを追加する（必要に応じて）
-- name: Add MySQL official repository
-  ansible.builtin.yum_repository:
-    name: mysql
-    description: MySQL Repository
-    baseurl: https://repo.mysql.com/yum/mysql-8.0-community/el/7/x86_64/
-    gpgcheck: yes
-    gpgkey: https://repo.mysql.com/RPM-GPG-KEY-mysql
-  become: yes
+# mysql は、実際にMySQLデータベースに接続して操作するためのツールを提供
+# mysql-devel は、MySQLと連携するアプリケーションを開発・ビルドするためのツールを提供

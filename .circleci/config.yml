@@ -7,15 +7,13 @@ version: 2.1
 # CircleCIの「オーブ」と呼ばれる再利用可能な構成要素を定義。特定の機能（AWS CLI、CloudFormation、Ansible、Ruby）を使用できる
 orbs:
   # AWS CLIオーブのバージョン5.1.0をインポート。AWS CLIコマンドを使用する
-  aws-cli: circleci/aws-cli@5.1.0
+  aws-cli: circleci/aws-cli@4.1.3
   # CloudFormationオーブのバージョン0.1.6をインポート。CloudFormationスタックの操作を支援
   aws-cloudformation: orbss/aws-cloudformation@0.1.6
   # Ansibleプレイブックオーブのバージョン0.0.5をインポート。Ansibleを使ったデプロイを簡素化
   ansible-playbook: orbss/ansible-playbook@0.0.5
   # Rubyオーブのバージョン2.1.3をインポート。Ruby環境を簡単に設定
-  ruby: circleci/ruby@2.2.1
-  # Pythonオーブをインポートする
-  python: circleci/python@2.0.3
+  ruby: circleci/ruby@2.1.3
 
 # ----------------------------------------------------------------
 # ワークフロー内で後ほど呼び出される「ジョブ」を定義する
