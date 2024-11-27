@@ -1,5 +1,4 @@
----
-- name: yum update all package
+- name: yum update all packages
   become: true
   ansible.builtin.yum:
     name: "*"
@@ -23,12 +22,6 @@
     name: PyMySQL
     state: present
 
-- name: Install pymysql using pip
-  become: true
-  pip:
-    name: pymysql
-    state: present
-
 - name: Install RPM-GPG-KEY-mysql
   become: true
   rpm_key:
@@ -36,13 +29,13 @@
     key: https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
   ignore_errors: true
 
-- name: install myaql repository
+- name: install mysql repository
   become: true
   yum:
-    name: "https://repo.mysql.com//mysql84-community-release-el7-1.noarch.rpm"
+    name: "https://repo.mysql.com/mysql80-community-release-el7-1.noarch.rpm"
     state: present
 
-- name: install mysql packges
+- name: install mysql packages
   become: true
   yum:
     name:
@@ -51,18 +44,12 @@
       - mysql-community-client
     state: present
 
-- name: add database.yml.j2
-  become: true
-  template:
-    src: database.yml.j2
-    dest: "{{ app_dir }}/config/database.yml"
-
 - name: Start MySQL service
   become: true
   systemd:
     name: mysqld
     state: started
-  ignore_errors: true
+  ignore_errors: false
 
 - name: use mysql_native_password
   community.mysql.mysql_user:
@@ -76,11 +63,3 @@
     state: present
     plugin: mysql_native_password
   ignore_errors: true
-
-
-
-- name: Start MySQL service
-  become: true
-  systemd:
-    name: mysqld
-    state: restarted
