@@ -32,4 +32,4 @@
     - mysql
     - setup
     - nginx
-    - setup_server
+    - setupserver
