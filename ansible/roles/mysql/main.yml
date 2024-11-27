@@ -1,65 +1,43 @@
-- name: yum update all packages
+---
+- name: Configure MySQL repository and install packages
+  hosts: all
   become: true
-  ansible.builtin.yum:
-    name: "*"
-    state: latest
+  tasks:
 
-- name: Install pip
-  become: true
-  yum:
-    name: python-pip
-    state: present
+    - name: Install yum-utils
+      yum:
+        name: yum-utils
+        state: present
 
-- name: uninstall MariaDB
-  become: true
-  yum:
-    name: mariadb*
-    state: absent
+    - name: Add MySQL 8.0 repository
+      yum:
+        name: "https://repo.mysql.com/mysql80-community-release-el7-1.noarch.rpm"
+        state: present
 
-- name: Install PyMySQL
-  become: true
-  pip:
-    name: PyMySQL
-    state: present
+    - name: Enable MySQL 8.0 repository
+      ini_file:
+        path: /etc/yum.repos.d/mysql-community.repo
+        section: mysql80-community
+        option: enabled
+        value: "1"
 
-- name: Install RPM-GPG-KEY-mysql
-  become: true
-  rpm_key:
-    state: present
-    key: https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
-  ignore_errors: true
+    - name: Disable MySQL 5.7 repository (if present)
+      ini_file:
+        path: /etc/yum.repos.d/mysql-community.repo
+        section: mysql57-community
+        option: enabled
+        value: "0"
 
-- name: install mysql repository
-  become: true
-  yum:
-    name: "https://repo.mysql.com/mysql80-community-release-el7-1.noarch.rpm"
-    state: present
+    - name: Install MySQL packages
+      yum:
+        name:
+          - mysql-community-server
+          - mysql-community-client
+          - mysql-community-devel
+        state: present
 
-- name: install mysql packages
-  become: true
-  yum:
-    name:
-      - mysql-community-devel
-      - mysql-community-server
-      - mysql-community-client
-    state: present
-
-- name: Start MySQL service
-  become: true
-  systemd:
-    name: mysqld
-    state: started
-  ignore_errors: false
-
-- name: use mysql_native_password
-  community.mysql.mysql_user:
-    name: admin
-    host: "%"
-    password: "{{ MasterUserPassword }}"
-    login_user: admin
-    login_password: "{{ MasterUserPassword }}"
-    login_host: "{{ EndpointAddress }}"
-    priv: "*.*:ALL,GRANT"
-    state: present
-    plugin: mysql_native_password
-  ignore_errors: true
+    - name: Start and enable MySQL service
+      systemd:
+        name: mysqld
+        state: started
+        enabled: true
