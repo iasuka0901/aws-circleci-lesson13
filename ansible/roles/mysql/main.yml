@@ -1,43 +1,28 @@
 ---
-- name: Configure MySQL repository and install packages
+- name: Setup Rails application with MariaDB-devel
   hosts: all
   become: true
   tasks:
-
-    - name: Install yum-utils
+    - name: Update all packages
       yum:
-        name: yum-utils
-        state: present
+        name: "*"
+        state: latest
 
-    - name: Add MySQL 8.0 repository
-      yum:
-        name: "https://repo.mysql.com/mysql80-community-release-el7-1.noarch.rpm"
-        state: present
-
-    - name: Enable MySQL 8.0 repository
-      ini_file:
-        path: /etc/yum.repos.d/mysql-community.repo
-        section: mysql80-community
-        option: enabled
-        value: "1"
-
-    - name: Disable MySQL 5.7 repository (if present)
-      ini_file:
-        path: /etc/yum.repos.d/mysql-community.repo
-        section: mysql57-community
-        option: enabled
-        value: "0"
-
-    - name: Install MySQL packages
+    - name: Install required libraries for mysql2 gem
       yum:
         name:
-          - mysql-community-server
-          - mysql-community-client
-          - mysql-community-devel
+          - mariadb-devel
+          - gcc
+          - gcc-c++
+          - make
         state: present
 
-    - name: Start and enable MySQL service
-      systemd:
-        name: mysqld
-        state: started
-        enabled: true
+    - name: Install bundler
+      shell: "/bin/bash -lc 'gem install bundler'"
+      args:
+        creates: "/usr/local/bin/bundle"
+
+    - name: Run bundle install
+      shell: "/bin/bash -lc 'bundle install'"
+      args:
+        chdir: "{{ app_dir }}"
