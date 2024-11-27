@@ -1,44 +1,86 @@
 ---
-# MySQLがインストールされているか確認する内容
-- name: Check if mysql is installed
-  # Ansible の command モジュールを使用して、指定のシェルコマンドを実行
-  ansible.builtin.command:
-    # mysql --version を実行し、MySQLのバージョンを確認
-    cmd: mysql --version
-  # コマンドの実行結果を mysql_check という変数に格納
-  register: mysql_check
-  # コマンドの実行が失敗してもエラーを無視し、次のタスクに進む
+- name: yum update all package
+  become: true
+  ansible.builtin.yum:
+    name: "*"
+    state: latest
+
+- name: Install pip
+  become: true
+  yum:
+    name: python-pip
+    state: present
+
+- name: uninstall MariaDB
+  become: true
+  yum:
+    name: mariadb*
+    state: absent
+
+- name: Install PyMySQL
+  become: true
+  pip:
+    name: PyMySQL
+    state: present
+
+- name: Install pymysql using pip
+  become: true
+  pip:
+    name: pymysql
+    state: present
+
+- name: Install RPM-GPG-KEY-mysql
+  become: true
+  rpm_key:
+    state: present
+    key: https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
   ignore_errors: true
-  # システムの状態が変わらない（インストール操作ではない）ためfalse に設定
-  changed_when: false
 
-# MySQL のインストールを行うタスク
-- name: Install mysql
-  # yum モジュールを使ってmysql パッケージをインストール
-  ansible.builtin.yum:
-    # インストールするパッケージ名を指定
-    name: mysql
-    # MySQLがインストールされていない場合はインストールするよう指示
+- name: install myaql repository
+  become: true
+  yum:
+    name: "https://repo.mysql.com//mysql84-community-release-el7-1.noarch.rpm"
     state: present
-  # mysql_install という変数にインストールの結果を格納
-  register: mysql_install
-  # yes とすることで、root 権限で実行
-  become: yes
-  # mysql_check.failed（MySQL がインストールされておらず、mysql --version が失敗した場合）にのみ、このインストールタスクが実行
-  when: mysql_check.failed
 
-#  MySQL 開発用パッケージ mysql-devel をインストールするタスク
-- name: Install mysql-devel
-  # yum モジュールを使ってmysql-devel パッケージをインストール
-  ansible.builtin.yum:
-    # mysql-devel パッケージをインストール
-    name: mysql-devel
-    # present として、未インストールの場合にインストールされるようにする
+- name: install mysql packges
+  become: true
+  yum:
+    name:
+      - mysql-community-devel
+      - mysql-community-server
+      - mysql-community-client
     state: present
-  # yesでroot 権限でインストール
-  become: yes
-  # mysql_check.failed（MySQL がインストールされておらず、mysql --version が失敗した場合）にのみこのタスクが実行
-  when: mysql_check.failed
 
-# mysql は、実際にMySQLデータベースに接続して操作するためのツールを提供
-# mysql-devel は、MySQLと連携するアプリケーションを開発・ビルドするためのツールを提供
+- name: add database.yml.j2
+  become: true
+  template:
+    src: database.yml.j2
+    dest: "{{ app_dir }}/config/database.yml"
+
+- name: Start MySQL service
+  become: true
+  systemd:
+    name: mysqld
+    state: started
+  ignore_errors: true
+
+- name: use mysql_native_password
+  community.mysql.mysql_user:
+    name: admin
+    host: "%"
+    password: "{{ MasterUserPassword }}"
+    login_user: admin
+    login_password: "{{ MasterUserPassword }}"
+    login_host: "{{ EndpointAddress }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    plugin: mysql_native_password
+  ignore_errors: true
+
+
+
+- name: Start MySQL service
+  become: true
+  systemd:
+    name: mysqld
+    state: restarted
