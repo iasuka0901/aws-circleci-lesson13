@@ -104,6 +104,7 @@
     state: restarted
 
 - name: Ensure mysql_native_password plugin is loaded
+  become: yes  # 追加
   lineinfile:
     path: /etc/my.cnf
     regexp: '^plugin-load-add'
