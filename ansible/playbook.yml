@@ -30,6 +30,5 @@
     - node
     - yarn
     - mysql
-    - setup
     - nginx
     - setupserver
