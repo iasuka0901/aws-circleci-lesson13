@@ -140,3 +140,13 @@
   # chdirを指定することで、コマンド実行時の作業ディレクトリを設定
   args:
     chdir: "{{app_dir}}"
+
+- handlers:
+  - name: restart mysql
+    systemd:
+      name: mysqld
+      state: restarted
+    become: yes
+    become_user: root
+    tags:
+      - mysql
