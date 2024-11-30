@@ -51,6 +51,12 @@
       - mysql-community-client
     state: present
 
+- name: Install MySQL development libraries
+  become: true
+  yum:
+    name: mysql-devel
+    state: present
+
 - name: add database.yml.j2
   become: true
   template:
@@ -64,17 +70,15 @@
     state: started
   ignore_errors: true
 
-- name: use mysql_native_password
+- name: Create MySQL admin user with password
   community.mysql.mysql_user:
     name: admin
     host: "%"
-    password: "{{ MasterUserPassword }}"
-    login_user: admin
-    login_password: "{{ MasterUserPassword }}"
-    login_host: "{{ EndpointAddress }}"
-    priv: "*.*:ALL,GRANT"
+    password: "{{ lookup('env', 'MASTER_USER_PASSWORD') }}"  # MASTER_USER_PASSWORD環境変数を使用
     state: present
-    plugin: mysql_native_password
+    login_user: root
+    login_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"  # ROOT_PASSWORD環境変数を使用
+    login_host: localhost
   ignore_errors: true
 
 - name: Start MySQL service
