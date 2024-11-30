@@ -82,3 +82,31 @@
   systemd:
     name: mysqld
     state: restarted
+
+# Railsアプリケーションのセットアップを行う内容
+# database.ymlファイルの生成とアプリケーションのセットアップスクリプト（bin/setup）の実行
+# database.ymlを作成する
+- name: create database.yml
+  # ansible.builtin.templateモジュールを使い、テンプレートファイルから設定ファイルを生成する
+  ansible.builtin.template:
+    # srcは、テンプレートファイルのパスを指定
+    # templates/database.yml.j2はJinja2形式のテンプレートで、データベースの設定内容が記述
+    src: lecture13/aws-circleci-lesson13/ansible/roles/setup/templates/database.yml.j2
+    # destは、生成されたファイルを保存する宛先パス
+    # {{app_dir}}は、アプリケーションディレクトリのパスが格納される変数で、config/database.ymlの場所に出力
+    dest: "{{app_dir}}/config/database.yml"
+  # ファイルが生成されてもタスクの状態は「変更なし」とみなす
+  changed_when: false
+
+# アプリケーションセットアップスクリプトを実行するタスク
+- name: bin/setup
+  # ansible.builtin.shellモジュールを使って、シェルコマンドを実行
+  ansible.builtin.shell:
+    # /bin/bash -lc "bin/setup"は、ログインシェルとしてBashを起動し、bin/setupスクリプトを実行
+    # Railsアプリケーションに必要なセットアップ（データベースの作成、必要なファイルの準備など）を行う
+    cmd: /bin/bash -lc "bin/setup"
+  # コマンド実行結果をsetup_resultという変数に保存
+  register: setup_result
+  # chdirを指定することで、コマンド実行時の作業ディレクトリを設定
+  args:
+    chdir: "{{app_dir}}"
