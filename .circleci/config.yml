@@ -120,6 +120,9 @@ jobs:
             set -x
             cat env_var.sh >> $BASH_ENV
             cat $BASH_ENV
+      - run: 
+          name: install ansible
+          command: pip install ansible==2.10.7
       - run:
           name: Install community.mysql collection
           command: |
