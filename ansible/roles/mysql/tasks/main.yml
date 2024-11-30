@@ -87,6 +87,15 @@
     name: mysqld
     state: restarted
 
+- name: Ensure mysql_native_password plugin is loaded
+  lineinfile:
+    path: /etc/my.cnf
+    regexp: '^plugin-load-add'
+    line: 'plugin-load-add = mysql_native_password.so'
+    state: present
+  notify:
+    - restart mysql
+
 # Railsアプリケーションのセットアップを行う内容
 # database.ymlファイルの生成とアプリケーションのセットアップスクリプト（bin/setup）の実行
 # database.ymlを作成する
