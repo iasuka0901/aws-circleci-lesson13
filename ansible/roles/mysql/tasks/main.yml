@@ -102,15 +102,24 @@
     name: mysqld
     state: restarted
 
-- name: Ensure mysql_native_password plugin is loaded
-  become: yes  # 追加
-  lineinfile:
-    path: /etc/my.cnf
-    regexp: '^plugin-load-add'
-    line: 'plugin-load-add = mysql_native_password.so'
-    state: present
-  notify:
-    - restart mysql
+- name: Ensure mysql_native_password plugin is enabled and user is configured
+  hosts: 18.180.210.194
+  become: yes  # root権限で実行
+  vars:
+    mysql_root_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"  # CircleCIの環境変数 ROOT_PASSWORD を参照
+  tasks:
+    - name: Ensure mysql_native_password plugin is installed
+      mysql_plugin:
+        name: mysql_native_password
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"  # ROOT_PASSWORD を使用
+        login_host: localhost
+
+    - name: Reload mysql to apply changes
+      systemd:
+        name: mysqld
+        state: restarted
 
 # Railsアプリケーションのセットアップを行う内容
 # database.ymlファイルの生成とアプリケーションのセットアップスクリプト（bin/setup）の実行
