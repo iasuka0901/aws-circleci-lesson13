@@ -120,6 +120,10 @@ jobs:
             set -x
             cat env_var.sh >> $BASH_ENV
             cat $BASH_ENV
+      - run:
+          name: Install community.mysql collection
+          command: |
+            ansible-galaxy collection install community.mysql -vvv
       # SSHキーをCircleCIの環境に追加するステップ
       - add_ssh_keys:
           # CircleCIが正しいSSHキーを使って接続を認証
