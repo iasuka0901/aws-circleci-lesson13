@@ -102,24 +102,17 @@
     name: mysqld
     state: restarted
 
-- name: Ensure mysql_native_password plugin is enabled and user is configured
-  hosts: 18.180.210.194
-  become: yes  # root権限で実行
-  vars:
-    mysql_root_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"  # CircleCIの環境変数 ROOT_PASSWORD を参照
-  tasks:
-    - name: Ensure mysql_native_password plugin is installed
-      mysql_plugin:
-        name: mysql_native_password
-        state: present
-        login_user: root
-        login_password: "{{ mysql_root_password }}"  # ROOT_PASSWORD を使用
-        login_host: localhost
-
-    - name: Reload mysql to apply changes
-      systemd:
-        name: mysqld
-        state: restarted
+- name: Ensure mysql_native_password plugin is enabled for user
+  mysql_user:
+    name: "root"  # MySQLのユーザー名
+    password: "{{ lookup('env', 'MASTER_USER_PASSWORD') }}"  # 環境変数からパスワードを取得
+    host: "18.180.210.194"  # ユーザーが接続するホスト（IPアドレスまたはホスト名）
+    state: present
+    login_user: root
+    login_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"  # ROOT_PASSWORD 環境変数を参照
+    plugin: mysql_native_password  # mysql_native_password プラグインを指定
+  notify:
+    - restart mysql
 
 # Railsアプリケーションのセットアップを行う内容
 # database.ymlファイルの生成とアプリケーションのセットアップスクリプト（bin/setup）の実行
