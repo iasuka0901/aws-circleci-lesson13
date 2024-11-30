@@ -56,7 +56,6 @@
     name: mysql-devel
     state: present
   become: yes
-  when: mysql_check.failed
 
 - name: add database.yml.j2
   become: true
