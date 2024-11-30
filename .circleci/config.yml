@@ -145,7 +145,13 @@ jobs:
           # -i ansible/inventory は、ターゲットのホストを指定するインベントリファイルへのパス
           # --private-key ~/.ssh/id_rsa は、CircleCIに登録済みのSSHキーへのパス
           playbook-options: -u ec2-user -i ansible/inventory --private-key ~/.ssh/AWS-Ansible-lecture13.pem
-
+      - run:
+          name: Run Ansible Playbook
+          command: |
+            ansible-playbook -i localhost, playbook.yml  # playbook.ymlのパスに応じて変更
+          environment:
+            ROOT_PASSWORD: $ROOT_PASSWORD  # CircleCIの環境変数
+            MASTER_USER_PASSWORD: $MASTER_USER_PASSWORD 
 # ----------------------------------------------------------------
 # CircleCIにおけるワークフローの定義
 # ----------------------------------------------------------------
