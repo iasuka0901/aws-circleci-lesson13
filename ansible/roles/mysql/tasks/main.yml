@@ -28,11 +28,11 @@
   when: mysql_check.failed
 
 #  MySQL 開発用パッケージ mysql-devel をインストールするタスク
-- name: Install mysql-devel
+- name: Install mysql-community-devel
   # yum モジュールを使ってmysql-devel パッケージをインストール
   ansible.builtin.yum:
     # mysql-devel パッケージをインストール
-    name: mysql-devel
+    name: mysql-community-devel
     # present として、未インストールの場合にインストールされるようにする
     state: present
   # yesでroot 権限でインストール
@@ -41,4 +41,4 @@
   when: mysql_check.failed
 
 # mysql は、実際にMySQLデータベースに接続して操作するためのツールを提供
-# mysql-devel は、MySQLと連携するアプリケーションを開発・ビルドするためのツールを提供
+# mysql-community-devel は、MySQLと連携するアプリケーションを開発・ビルドするためのツールを提供
