@@ -51,83 +51,11 @@
       - mysql-community-client
     state: present
 
-- name: Check if mysql is installed
-  ansible.builtin.command:
-    cmd: mysql --version
-  register: mysql_check
-  ignore_errors: true
-  changed_when: false
-
-- name: Install mysql
-  ansible.builtin.yum:
-    name: mysql
-    state: present
-  register: mysql_install
-  become: yes
-  when: mysql_check.failed
-
-- name: Install mysql-devel
-  ansible.builtin.yum:
-    name: mysql-devel
-    state: present
-  become: yes
-
 - name: add database.yml.j2
   become: true
   template:
     src: database.yml.j2
     dest: "{{ app_dir }}/config/database.yml"
-
-- name: Start MySQL service
-  become: true
-  systemd:
-    name: mysqld
-    state: started
-  ignore_errors: true
-
-- name: Create MySQL admin user with password
-  community.mysql.mysql_user:
-    name: admin
-    host: "%"
-    password: "{{ lookup('env', 'MASTER_USER_PASSWORD') }}"  # MASTER_USER_PASSWORD環境変数を使用
-    state: present
-    login_user: root
-    login_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"  # ROOT_PASSWORD環境変数を使用
-    login_host: localhost
-  ignore_errors: true
-
-- name: Start MySQL service
-  become: true
-  systemd:
-    name: mysqld
-    state: restarted
-
-- name: Ensure mysql_native_password plugin is installed
-  become: true
-  mysql_query:
-    query: "SHOW PLUGINS"
-    login_user: root
-    login_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"
-    login_host: localhost
-  register: result
-  ignore_errors: true
-
-- name: Install mysql_native_password plugin if not installed
-  become: true
-  mysql_query:
-    query: "INSTALL PLUGIN mysql_native_password SONAME 'mysql_native_password.so';"
-    login_user: root
-    login_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"
-    login_host: localhost
-  when: result.stdout | regex_search('mysql_native_password') is not defined
-
-- name: Ensure mysql_native_password plugin is enabled for user
-  become: true
-  mysql_query:
-    query: "ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '{{ lookup('env', 'ROOT_PASSWORD') }}';"
-    login_user: root
-    login_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"
-    login_host: localhost
 
 # Railsアプリケーションのセットアップを行う内容
 # database.ymlファイルの生成とアプリケーションのセットアップスクリプト（bin/setup）の実行
