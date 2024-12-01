@@ -102,10 +102,19 @@
     name: mysqld
     state: restarted
 
+- name: Install mysql_native_password plugin
+  become: true
+  mysql_query:
+    query: "INSTALL PLUGIN mysql_native_password SONAME 'mysql_native_password.so';"
+    login_user: root
+    login_password: "{{ lookup('env', 'ROOT_PASSWORD') }}"
+    login_host: localhost
+
 - name: Ensure mysql_native_password plugin is enabled for user
+  become: true
   mysql_user:
     name: "root"  # MySQLのユーザー名
-    password: "{{ lookup('env', 'MASTER_USER_PASSWORD') }}"  # 環境変数からパスワードを取得
+    password: "{{ lookup('env', 'ROOT_PASSWORD') }}"  # 環境変数からパスワードを取得
     host: "18.180.210.194"  # ユーザーが接続するホスト（IPアドレスまたはホスト名）
     state: present
     login_user: root
