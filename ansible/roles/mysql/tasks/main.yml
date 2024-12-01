@@ -42,23 +42,21 @@
     name: "https://repo.mysql.com//mysql84-community-release-el7-1.noarch.rpm"
     state: present
 
-- name: Install MySQL packages and mysql2 gem
-  hosts: 18.180.210.194  # 対象ホストを指定
-  become: yes  # root権限で実行
-  tasks:
-    - name: Install MySQL development libraries and client/server
-      yum:
-        name:
-          - mysql-community-devel
-          - mysql-community-server
-          - mysql-community-client
-        state: present
+- name: Install MySQL development libraries and client/server
+  become: true
+  yum:
+    name:
+      - mysql-community-devel
+      - mysql-community-server
+      - mysql-community-client
+    state: present
 
-    - name: Install mysql2 gem
-      gem:
-        name: mysql2
-        state: present
-        executable: ~/.rvm/rubies/ruby-3.2.3/bin/gem  # gemコマンドのパスを指定
+- name: Install mysql2 gem
+  become: true
+  gem:
+    name: mysql2
+    state: present
+    executable: "~/.rvm/rubies/ruby-3.2.3/bin/gem"  # gemコマンドのパスを指定
 
 - name: add database.yml.j2
   become: true
