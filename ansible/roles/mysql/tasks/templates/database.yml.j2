@@ -1,34 +1,19 @@
-# データベース接続の基本設定（default）を開始。&defaultはこの設定を参照できる
 default: &default
-  # データベースアダプターとして mysql2 を使用することを指定
   adapter: mysql2
-  # データベースのエンコーディングとして utf8mb4 を使用することを指定
   encoding: utf8mb4
-  # データベース接続のプールサイズを指定します。RAILS_MAX_THREADS 環境変数から値を取得し、設定がない場合はデフォルトで5に設定
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  # データベース接続時のユーザー名として root を使用
   username: root
-  # データベース接続時のパスワードとして aws_db_pw という変数（環境変数や設定ファイルから提供される）を使用
-  password: {{aws_db_pw}}
-  # データベースソケットファイルのパスを指定。MySQLのローカル接続に使用される
-  socket: /ver/lib/mysql/musql.sock
-  # データベースのホスト名として aws_db_endpoint という変数を使用
-  host: {{aws_db_endpoint}}
+  password: <%= ENV['AWS_DB_PW'] %>
+  host: <%= ENV['AWS_DB_ENDPOINT'] %>
 
-# 開発環境 (development) のデータベース設定
-# <<: *default は、上記で定義された default 設定を引き継ぐことを意味
-# データベース名は raisetech_live8_sample_app_development とします
 development:
   <<: *default
   database: raisetech_live8_sample_app_development
 
-# テスト環境 (test) のデータベース設定。<<: *default は、default 設定を引き継ぎ
 test:
   <<: *default
   database: raisetech_live8_sample_app_test
 
-# 本番環境 (production) のデータベース設定。<<: *default は、default 設定を引き継ぎ
-# データベース名、ユーザー名、パスワード、ホスト情報は Rails の暗号化された credentials.yml から読み込み
 production:
   <<: *default
   database: raisetech_live8_sample_app_production
