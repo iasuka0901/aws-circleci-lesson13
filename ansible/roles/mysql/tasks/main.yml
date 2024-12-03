@@ -52,11 +52,11 @@
     state: present
 
 - name: Install mysql2 gem
-  become: true
-  gem:
-    name: mysql2
-    state: present
-    executable: "~/.rvm/rubies/ruby-3.2.3/bin/gem"  # gemコマンドのパスを指定
+  shell: |
+    source /home/ec2-user/.rvm/scripts/rvm
+    /home/ec2-user/.rvm/rubies/ruby-3.2.3/bin/gem install mysql2
+  args:
+    executable: /bin/bash
 
 - name: add database.yml.j2
   become: true
