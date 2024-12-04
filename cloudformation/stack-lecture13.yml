@@ -408,26 +408,16 @@ Resources:
 # ----------------------------------------------------------------
 #   RDSのシークレットマネージャーの定義
 # ----------------------------------------------------------------
-  # リソースの論理ID。CloudFormationスタック内でこのリソースを識別するために使用
   RDSSecret:
-    # Secrets Managerのシークレットを作成するためのリソースタイプ
     Type: "AWS::SecretsManager::Secret"
-    # リソースのプロパティを定義
     Properties:
-      # シークレットの名前を指定。!Sub関数を使用してlecture10-rds-secret
       Name: !Sub "${NameBase}-rds-secret"
-      # シークレットの説明文
       Description: "This SecretsManager is for RDS instance"
-      # 自動的に生成されるシークレット文字列の設定を定義
-      GenerateSecretString:
-        # シークレットに含まれる固定の部分をJSON形式で指定。ユーザー名として"admin"を指定。
-        SecretStringTemplate: "{\"username\": \"admin\"}"
-        # 自動生成されるシークレットのキーを指定
-        GenerateStringKey: "password"
-        # 自動生成されるパスワードの長さを指定
-        PasswordLength: 16
-        # 自動生成されるパスワードから除外する文字を指定
-        ExcludeCharacters: "\"'`@/\\"
+      SecretString: !Sub |
+        {
+          "username": "admin",
+          "password": "${CircleCIPassword}"
+        }
 
 # ----------------------------------------------------------------
 #   RDSインスタンスの定義

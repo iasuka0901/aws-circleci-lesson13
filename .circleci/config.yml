@@ -90,6 +90,15 @@ jobs:
           root: .
           paths:
             - env_var.sh
+      - run:
+          name: Deploy CloudFormation Stack
+          command: |
+           aws cloudformation deploy \
+            --template-file stack.yml \
+            --stack-name lecture10-stack \
+            --parameter-overrides CircleCIPassword=$AWS_DB_PW \
+            --capabilities CAPABILITY_NAMED_IAM
+
 # ----------------------------------------------------------------
 # Ansible
 # ----------------------------------------------------------------
