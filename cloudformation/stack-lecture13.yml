@@ -26,6 +26,7 @@ Parameters:
 
 # CloudFormationテンプレート内のリソースを定義するセクションの始まり
 Resources:
+
 # ----------------------------------------------------------------
 #   VPCの定義
 # ----------------------------------------------------------------
@@ -213,16 +214,6 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: !Ref AllowedSSHIP
-                  # ポート3000（アプリケーション用）へのトラフィックを全てのIPアドレスから許可するルール
-        - IpProtocol: tcp
-          FromPort: 3000
-          ToPort: 3000
-          CidrIp: 0.0.0.0/0
-        # ポート3306（MySQL用）へのトラフィックを特定のIPアドレスから許可するルール（例: AllowedSSHIP）
-        - IpProtocol: tcp
-          FromPort: 3306
-          ToPort: 3306
-          CidrIp: !Ref AllowedSSHIP
       # アウトバウンドルールの設定
       SecurityGroupEgress:
         # 全てのプロトコルのアウトバウンドトラフィックを全てのIPアドレスに許可。-1 はAWS CloudFormationで「全てのプロトコル」を意味。
@@ -287,15 +278,8 @@ Resources:
           CidrIp: 0.0.0.0/0
       # アウトバウンドルールの設定
       SecurityGroupEgress:
-        # ポート80トラフィックをEC2のセキュリティグループに許可
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          DestinationSecurityGroupId: !Ref SecurityGroupEC2
-        # ポート443トラフィックを全てのIPアドレスに許可
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
+        # 全てのプロトコルのアウトバウンドトラフィックを全てのIPアドレスに許可。
+        - IpProtocol: -1
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
@@ -371,9 +355,6 @@ Resources:
         # 先に定義したIAMロール Role を参照
         - !Ref Role
 
-# ----------------------------------------------------------------
-#   EC2インスタンスの定義
-# ----------------------------------------------------------------
   EC2:
     # リソースのタイプ。EC2インスタンスを作成
     Type: AWS::EC2::Instance
@@ -571,53 +552,3 @@ Outputs:
     Description: Name of S3 Bucket
     # !Ref: リソースの基本的な参照（IDや名前）を取得
     Value: !Sub "${NameBase}-20240728-s3"
-
-# セキュリティグループに関する情報を公開
-  EC2SecurityGroupId:
-    Description: EC2SecurityGroup ID
-    Value: !Ref SecurityGroupEC2
-    Export: 
-      Name: TARGETECSG-CI
-  
-  RDSSecurityGroupId:
-    Description: RDSSecurityGroup ID
-    Value: !Ref SecurityGroupRDS
-    Export: 
-      Name: RDSSGId-CI
-  
-  ALBSecurityGroupId:
-    Description: ALBSecurityGroup ID
-    Value: !Ref SecurityGroupALB
-    Export: 
-      Name: ALBSGId-CI
-
-# ネットワークに関する情報を公開
-  VPC:
-    Description: VPC ID
-    Value: !Ref VPC
-    Export: 
-      Name: VpcId-CI
-
-  PublicSubnet1aId:
-    Description: PublicSubnet1a ID
-    Value: !Ref PublicSubnet1a
-    Export: 
-      Name: PublicSubnet1aId-CI
-
-  PublicSubnet1cId:
-    Description: PublicSubnet1c ID
-    Value: !Ref PublicSubnet1c
-    Export: 
-      Name: PublicSubnet1cId-CI
-
-  PrivateSubnet1aId:
-    Description: PrivateSubnet1a ID
-    Value: !Ref PrivateSubnet1a
-    Export: 
-      Name: PrivateSubnet1aId-CI
-
-  PrivateSubnet1cId:
-    Description: PrivateSubnet1c ID
-    Value: !Ref PrivateSubnet1c
-    Export: 
-      Name: PrivateSubnet1cId-CI
