@@ -47,8 +47,6 @@ jobs:
           template-file-path: cloudformation/stack-lecture13.yml
           # IAMロールの作成・更新に必要な権限を指定
           capabilities: CAPABILITY_NAMED_IAM
-          #  テンプレートのパラメータを指定。RDSpasswordに環境変数AWS_DB_PWの値を設定($AWS_DB_PWは事前に手動設定しておきCircleCIの環境変数に登録)
-          parameter-overrides: RDSpassword=$AWS_DB_PW
 
       # 任意のコマンドを実行するステップを指定。これから実行する内容を定義
       - run:
