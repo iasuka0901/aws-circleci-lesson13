@@ -65,8 +65,6 @@ jobs:
           # $BASH_ENVという特別な環境変数を使用することで、スクリプト内で設定した環境変数を後続のジョブやステップで利用可能にすることができる
           command: | 
             set -x
-            #EC2ElasticIp
-            echo export AWS_EC2_IP="$(aws cloudformation describe-stacks --stack-name stack-lecture13 --query "Stacks[0].Outputs[?OutputKey=='EC2ElasticIp'].OutputValue" --output text)" >> $BASH_ENV
             #DB_Endpoint
             echo export AWS_DB_ENDPOINT="$(aws cloudformation describe-stacks --stack-name stack-lecture13 --query "Stacks[0].Outputs[?OutputKey=='RDSEndpoint'].OutputValue" --output text)" >> $BASH_ENV
             #ALB_host
@@ -90,24 +88,6 @@ jobs:
           root: .
           paths:
             - env_var.sh
-            
-      - run:
-          name: Deploy CloudFormation Stack
-          command: |
-            aws cloudformation deploy \
-              --template-file stack.yml \
-              --stack-name lecture10-stack \
-              --parameter-overrides CircleCIPassword=$AWS_DB_PW \
-              --capabilities CAPABILITY_NAMED_IAM
-
-      - run:
-          name: Debug AWS_DB_PW
-          command: |
-            echo "AWS_DB_PW is: $AWS_DB_PW"
-            if [ -z "$AWS_DB_PW" ]; then
-              echo "AWS_DB_PW is not set"
-              exit 1
-            fi
 
 # ----------------------------------------------------------------
 # Ansible

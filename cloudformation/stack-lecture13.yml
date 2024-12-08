@@ -25,7 +25,7 @@ Parameters:
     Default: 0.0.0.0/0
 
   # RDSパスワードのパラメータ
-  CircleCIPassword:
+  RDSpassword:
     Type: String
     Description: "Password for RDS"
 
@@ -411,20 +411,6 @@ Resources:
       EIP: !Ref ElasticIP 
 
 # ----------------------------------------------------------------
-#   RDSのシークレットマネージャーの定義
-# ----------------------------------------------------------------
-  RDSSecret:
-    Type: "AWS::SecretsManager::Secret"
-    Properties:
-      Name: !Sub "${NameBase}-rds-secret"
-      Description: "This SecretsManager is for RDS instance"
-      SecretString: !Sub |
-        {
-          "username": "admin",
-          "password": "${CircleCIPassword}"
-        }
-
-# ----------------------------------------------------------------
 #   RDSインスタンスの定義
 # ----------------------------------------------------------------
   # CloudFormationテンプレート内でのこのリソースの識別子
@@ -441,9 +427,9 @@ Resources:
       # MySQLのバージョンを指定
       EngineVersion: 8.0.35
       # Secrets Managerから取得するユーザー名を指定
-      MasterUsername: !Sub "{{resolve:secretsmanager:${RDSSecret}:SecretString:username}}"
+      MasterUsername: !Sub "{{resolve:secretsmanager:${lecture13-rds-secret}:SecretString:username}}"
       # Secrets Managerから取得するパスワードを指定
-      MasterUserPassword: !Sub "{{resolve:secretsmanager:${RDSSecret}:SecretString:password}}"
+      MasterUserPassword: !Sub "{{resolve:secretsmanager:${lecture13-rds-secret}:SecretString:password}}"
       # 高可用性のためのマルチAZ配置。Falseに設定しRDSインスタンスは単一のアベイラビリティゾーンにのみ配置。
       MultiAZ: False
       # ストレージの種類を指定。gp2（汎用SSD）
@@ -463,20 +449,6 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub "${NameBase}-rds"
-
-# ----------------------------------------------------------------
-#   RDSのシークレットマネージャーとRDSインスタンスの関連付け
-# ----------------------------------------------------------------
-  RDSSecretTargetAttachment:
-    # Secrets Managerのシークレットを特定のリソースに関連付けるためのリソースタイプ
-    Type: "AWS::SecretsManager::SecretTargetAttachment"
-    Properties:
-      # シークレットを関連付ける対象のタイプを指定します。ここではRDSのDBインスタンスを指定
-      TargetType: AWS::RDS::DBInstance
-      # シークレットを関連付ける具体的なRDSインスタンスのIDを参照
-      TargetId: !Ref RDS
-      # 関連付けるシークレットのIDを参照
-      SecretId: !Ref RDSSecret
 
 # ----------------------------------------------------------------
 #   RDSのサブネットグループの定義
