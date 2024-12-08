@@ -90,14 +90,24 @@ jobs:
           root: .
           paths:
             - env_var.sh
+            
       - run:
           name: Deploy CloudFormation Stack
           command: |
-           aws cloudformation deploy \
-            --template-file stack.yml \
-            --stack-name lecture10-stack \
-            --parameter-overrides CircleCIPassword=$AWS_DB_PW \
-            --capabilities CAPABILITY_NAMED_IAM
+            aws cloudformation deploy \
+              --template-file stack.yml \
+              --stack-name lecture10-stack \
+              --parameter-overrides CircleCIPassword=$AWS_DB_PW \
+              --capabilities CAPABILITY_NAMED_IAM
+
+      - run:
+          name: Debug AWS_DB_PW
+          command: |
+            echo "AWS_DB_PW is: $AWS_DB_PW"
+            if [ -z "$AWS_DB_PW" ]; then
+              echo "AWS_DB_PW is not set"
+              exit 1
+            fi
 
 # ----------------------------------------------------------------
 # Ansible
