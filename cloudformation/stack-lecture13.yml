@@ -403,9 +403,9 @@ Resources:
       # MySQLのバージョンを指定
       EngineVersion: 8.0.35
       # Secrets Managerから取得するユーザー名を指定
-      MasterUsername: !Sub "{{resolve:secretsmanager:${lecture13-rds-secret}:SecretString:username}}"
+      MasterUsername: !Sub "{{resolve:secretsmanager:${\"lecture13-rds-secret\"}:SecretString:username}}"
       # Secrets Managerから取得するパスワードを指定
-      MasterUserPassword: !Sub "{{resolve:secretsmanager:${lecture13-rds-secret}:SecretString:password}}"
+      MasterUserPassword: !Sub "{{resolve:secretsmanager:${\"lecture13-rds-secret\"}:SecretString:password}}"
       # 高可用性のためのマルチAZ配置。Falseに設定しRDSインスタンスは単一のアベイラビリティゾーンにのみ配置。
       MultiAZ: False
       # ストレージの種類を指定。gp2（汎用SSD）
@@ -531,12 +531,6 @@ Outputs:
   EC2ElasticIp:
     Description: EC2インスタンスに関連付けられたElastic IP
     # Elastic IPの値を取得
-    Value: !Ref ElasticIP
-  
-  RDSUser:
-    Description: User of RDS
-    # !Sub は文字列の一部にパラメータやリソースの値を埋め込みたいときに使用
-    Value: !Sub "{{resolve:secretsmanager:${RDSSecret}:SecretString:username}}"
 
   RDSEndpoint:
     Description: Endpoint of RDS instance
