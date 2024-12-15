@@ -516,22 +516,7 @@ Resources:
 # ----------------------------------------------------------------
 # スタックのリソースに関する情報を公開
 Outputs:
-  EC2PublicIpAddress:
-    Description: Public IP of EC2 instance
-    # Resourcesセクションで定義したもの。
-    Value: !GetAtt EC2.PublicIp
-
-  RDSEndpoint:
-    Description: Endpoint of RDS instance
-    # !GetAtt: 特定の属性（DNS名やエンドポイントなど）を取得
-    Value: !GetAtt RDS.Endpoint.Address
-
   ALBDNSName:
     Description: DNS Name of ALB
     # !GetAtt: 特定の属性（DNS名やエンドポイントなど）を取得
     Value: !GetAtt ALB.DNSName
-
-  S3BucketName:
-    Description: Name of S3 Bucket
-    # !Ref: リソースの基本的な参照（IDや名前）を取得
-    Value: !Sub "${NameBase}-20240728-s3"
