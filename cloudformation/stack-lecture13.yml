@@ -520,11 +520,6 @@ Outputs:
     Description: Public IP of EC2 instance
     # Resourcesセクションで定義したもの。
     Value: !GetAtt EC2.PublicIp
-  
-  RDSUser:
-    Description: User of RDS
-    # !Sub は文字列の一部にパラメータやリソースの値を埋め込みたいときに使用
-    Value: !Sub {{resolve:secretsmanager:arn:aws:secretsmanager:ap-northeast-1:767397951181:secret:lecture13_rds_secret-8JTHlj:SecretString:password}}
 
   RDSEndpoint:
     Description: Endpoint of RDS instance
