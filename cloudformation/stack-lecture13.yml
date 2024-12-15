@@ -8,7 +8,12 @@ Parameters:
   NameBase:
   # NameBase パラメータの説明
     Description: this is base name
+    #ElasticIP
+    ElasticIP:
     #文字列型の値を受け取ること
+    Type: String
+    Description: 事前に作成したElastic IPのIPアドレス
+    Default: "18.180.210.194"
     Type: String
     # NameBase パラメータのデフォルト値
     Default: lecture13
@@ -516,6 +521,11 @@ Resources:
 # ----------------------------------------------------------------
 # スタックのリソースに関する情報を公開
 Outputs:
+  EC2ElasticIp:
+    Description: EC2インスタンスに関連付けられたElastic IP
+    # Elastic IPの値を取得
+    Value: !Ref ElasticIP
+
   ALBDNSName:
     Description: DNS Name of ALB
     # !GetAtt: 特定の属性（DNS名やエンドポイントなど）を取得
