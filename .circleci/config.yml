@@ -82,13 +82,13 @@ jobs:
               cat $BASH_ENV
       # $BASH_ENVファイルの内容をenv_var.shという名前のファイルにコピー。環境変数が記載されたファイルを作成
       - run:
-          name: copy $BASH_ENV
-          command:
-              cp $BASH_ENV env_var.sh
-      # CircleCI には ワークスペース という概念があり、同じワークフロー内でジョブ間のデータ共有を可能にする仮想的な領域
-      # 現在のディレクトリ（root: .）内のenv_var.shファイルをCircleCIのワークスペースに保存
-      # 後続のジョブでもこのファイルを利用できる
-      - persist_to_workspace:
-          root: .
-          paths:
-            - env_var.sh
+          name: "Say hello"
+          command: "echo Hello, World!"
+
+# Orchestrate jobs using workflows
+# See: https://circleci.com/docs/workflows/ & https://circleci.com/docs/configuration-reference/#workflows
+workflows:
+  say-hello-workflow: # This is the name of the workflow, feel free to change it to better match your workflow.
+    # Inside the workflow, you define the jobs you want to run.
+    jobs:
+      - say-hello
